@@ -1,2 +1,2 @@
 from .core import *
-from . pathways
+from . import pathways
