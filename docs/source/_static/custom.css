@@ -1,0 +1,10 @@
+/* Justify all paragraph text */
+.rst-content p {
+    text-align: justify;
+}
+
+/* Optionally, justify text in docstring code blocks */
+.highlight pre {
+    text-align: justify;
+    white-space: pre-wrap;  /* Preserve whitespace and wrap lines */
+}

@@ -1,4 +1,4 @@
-draw_network Package
+DrawNet Package
 ====================
 
 Core Module

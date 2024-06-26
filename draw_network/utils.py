@@ -465,3 +465,164 @@ def calculate_single_rotated_bezier_point(center_N1,center_N2,value):
     # single_symmetric_bezier_point
     srbp = rotated_N1*(correct_value)+rotated_N2*(1-correct_value)
     return srbp
+
+def calculate_virtual_bezier_point(N1,N2,bezier_point,line):
+
+    # calculate the node points if the node radius would be extended by the line value
+    if np.isclose(N1["radius"]+line,0):
+        potential_points = [N1["center"]]
+        is_inside = False
+    else:
+        virtual_node_points = get_node_coordinates(N1["center"],N1["radius"]+line, N1["width"],N1["height"])
+        # check if current bezier point is inside the node
+        is_inside = is_point_inside_convex_polygon(virtual_node_points[0,:],virtual_node_points[1,:],bezier_point)
+        if is_inside:
+            potential_points = get_intersections(virtual_node_points,N2["center"], bezier_point)
+        else:
+            potential_points = get_intersections(virtual_node_points,N1["center"], bezier_point)
+
+    norms = np.linalg.norm(np.array(potential_points)-np.array(bezier_point),axis=1)
+    point = potential_points[np.argmin(norms)]
+    return point, is_inside
+
+def calculate_single_symmetric_bezier_point(center_N1,center_N2,value,angle=None):
+    if angle is not None:
+        center_N1 = rotate_point(center_N1,(0,0),-angle)
+        center_N2 = rotate_point(center_N2,(0,0),-angle)
+    rotated_N1, rotated_N2 = get_missing_rectangle_points(center_N1,center_N2)
+    if angle is not None:
+        rotated_N1 = rotate_point(rotated_N1,(0,0),+angle)
+        rotated_N2 = rotate_point(rotated_N2,(0,0),+angle)
+    correct_value = (value/2+0.5)
+    # single_symmetric_bezier_point
+    ssbp = rotated_N1*(correct_value)+rotated_N2*(1-correct_value)
+    return ssbp
+
+def calculate_edge_center(edge,return_adjacent_points=False):
+    n_points = len(edge["points"][0])
+
+    if edge["curve"] == 0:
+        P1 = edge["points"][:,0]
+        P2 = edge["points"][:,-1]
+
+    else:
+        if n_points%2 == 0:
+            P1 = edge["points"][:,n_points//2-2]
+            P2 = edge["points"][:,n_points//2]
+        else:
+            P1 = edge["points"][:,n_points//2-1]
+            P2 = edge["points"][:,n_points//2]
+
+
+    x = np.mean([P1[0],P2[0]])
+    y = np.mean([P1[1],P2[1]])
+    center = np.array([x,y])
+
+    if return_adjacent_points:
+        return center, P1, P2
+    else:
+        return center
+
+def calculate_coreactant_node_coordinates(edge,side="both",width=0,height=0):
+    """
+
+    Returns:
+    center, angle, node_locations, bezier_locations
+    """
+
+    n_points = len(edge["points"][0])
+    center, P1, P2 = calculate_edge_center(edge,True)
+
+
+    if edge["curve"] == 0:
+        src_x = np.mean([P1[0],center[0]])
+        src_y = np.mean([P1[1],center[1]])
+        start_rotation_center = np.array([src_x,src_y])
+
+        erc_x = np.mean([P2[0],center[0]])
+        erc_y = np.mean([P2[1],center[1]])
+        end_rotation_center = np.array([erc_x,erc_y])
+    else:
+        start_rotation_center = edge["points"][:,int(n_points*.25)]
+        end_rotation_center   = edge["points"][:,-int(n_points*.25)-2]
+
+
+    dx = P2[0]-P1[0]
+    dy = P2[1]-P1[1]
+    angle = calculate_angle_from_slope(dx,dy)
+
+    # coreactants 1/4 of the way from the start point
+    CoR_S1 = rotate_point(center,start_rotation_center,angle=+90)
+    CoR_S2 = rotate_point(center,start_rotation_center,angle=-90)
+
+    # coreactants 1/4 of the way from the end point
+    CoR_E1 = rotate_point(center,end_rotation_center,angle=-90)
+    CoR_E2 = rotate_point(center,end_rotation_center,angle=+90)
+
+    # bezier point calculation
+
+    if side not in ["both","left","right"]:
+        logging.warning(f"Side argument '{side}' not implemented. Defaults to 'both'.")
+        side = "both"
+
+    node_locations = []
+    bezier_locations = []
+    delta = np.array([width,height])
+
+    if side == "left" or side == "both":
+        shifted_node_locations = [rotate_point(node,(0,0),-angle) for node in [CoR_S1, CoR_E1]]
+        streched_backshifted_node_locations = []
+        for node, factor in zip(shifted_node_locations,[-1,1]):
+            tmp = rotate_point(node+delta*np.array([factor,+1]),(0,0),angle)
+            streched_backshifted_node_locations.append(tmp)
+        node_locations += streched_backshifted_node_locations
+
+        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
+        bezier_locations.append(get_closer_point(bR1, bR2,start_rotation_center))
+
+        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
+        bezier_locations.append(get_closer_point(bR1, bR2,end_rotation_center))
+
+    if side == "right" or side == "both":
+        shifted_node_locations = [rotate_point(node,(0,0),-angle) for node in [CoR_S2, CoR_E2]]
+        streched_backshifted_node_locations = []
+        for node, factor in zip(shifted_node_locations,[-1,1]):
+            tmp = rotate_point(node+delta*np.array([factor,-1]),(0,0),angle)
+            streched_backshifted_node_locations.append(tmp)
+        node_locations += streched_backshifted_node_locations
+
+        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
+        bezier_locations.append(get_closer_point(bR1, bR2,start_rotation_center))
+
+        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
+        bezier_locations.append(get_closer_point(bR1, bR2,end_rotation_center))
+
+    return center, angle, node_locations, bezier_locations
+
+def calculate_circle_coordinates(center, radius, n, rotation = 0, clockwise=True):
+    """
+    Returns the coordinates of n evenly spaced points on the circumference of a circle
+    with the given radius and center.
+
+    Arguments:
+    center -- a tuple of two floats (x,y) representing the center of the circle
+    radius -- a float representing the radius of the circle
+    n -- an integer representing the number of points to return
+    rotation -- where the first point should be placed. 0 - right, .5 - top, 1 - left, 1.5 - bottom
+
+    Returns:
+    A list of tuples, each tuple representing the (x,y) coordinates of a point on the circumference of the circle.
+    """
+
+    coordinates = []
+
+    for i in range(n):
+        angle = i * (2 * math.pi / n) + rotation * math.pi
+        x = center[0] + radius * math.cos(angle)
+        y = center[1] + radius * math.sin(angle)
+        coordinates.append((x,y))
+
+    if clockwise:
+        coordinates = [coordinates[0]]+coordinates[1:][::-1]
+
+    return coordinates

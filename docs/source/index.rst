@@ -1,7 +1,7 @@
-.. 
+..
 
-Welcome to draw_network's Documentation!
-================================
+Welcome to DrawNet's Documentation!
+===================================
 
 .. image:: data/logo.png
   :target: index.html
@@ -17,7 +17,7 @@ Welcome to draw_network's Documentation!
 
    readme
    draw_network
-   
+
 
 Indices and Tables
 ==================
@@ -25,4 +25,3 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

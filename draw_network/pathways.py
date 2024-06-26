@@ -5,29 +5,46 @@ from .utils import *
 from .core import *
 import logging
 
-def add_coreactants(edge,ax=None,side=None,arrow=None,text=None,width=None,height=None,bez_width=None,
+def add_coreactants(edge,ax=None,side=None,arrow=None,text=None,width=None,
+                    height=None,bez_width=None,
                     edge_kwargs={},node_kwargs={},node_text_kwargs={}):
     """
-    Function that adds coreactant nodes and eges to an existing edge. Node locations are calculated by rotation of the edge center point over 1/4 and 3/4 of the length of the edge for +/- 90°.
+    Function  that  adds  coreactant  nodes  and  eges to an existing edge. Node
+    locations  are  calculated by rotation of the edge center point over 1/4 and
+    3/4 of the length of the edge for +/- 90°.
 
     Parameters
     ----------
     edge : edge-dict
         Edge to which the coreactants are added.
-    ax : axis or None
-        Matplotlib axis on which the nodes and edges are drawn. If None is given, nothing is drawn.
+    ax : matplotlib.axes.Axes or None
+        matplotlib  axis  on  which  the  nodes  and edges are drawn. If None is
+        given, nothing is drawn.
     side : str or None
-        Either "left" or "right" or "both". If None, default parameter is used. Side on which the coreactants is drawn as seen from the first node to the second node parsed to create_edge() of the edge given.
+        Either  "left" or "right" or "both". If None, default parameter is used.
+        Side on which the coreactants is drawn as seen from the first node to
+        the second node parsed to create_edge() of the edge given.
     text : list of str or None
-        List of the node labels. List length should be either 2 for side = "left" or "right" or 4 for side = "both". Missing list entries are filled with empyt strings.
+        List of the node labels. List length should be either 2 for side =
+        "left" or "right" or 4 for side = "both". Missing list entries are
+        filled with empty strings.
     width : float or None
-        Absolute value that pushes the coreactant nodes of the same side apart from each other. If None, default parameter is used.
+        Absolute value that pushes the coreactant nodes of the same side apart
+         from each other. If None, default parameter is used.
     height: float or None
-        Absolute value that pushed the coreactant nodes of opposite sides apart from each other. If None, default parameter is used.
+        Absolute value that pushed the coreactant nodes of opposite sides apart
+         from each other. If None, default parameter is used.
     bez_width : float or None
-        If not None, then bez_width+width is used for the calculation of the Bezier Point locations. Entering negative numbers makes the edge more shallow. If None, default parameter is used.
+        Compared to coreactant node points, Bezier point locations are shifted
+        by bez_width. Entering negative numbers makes the edge curve more
+        shallow. If None, default parameter is used.
     edge_kwargs, node_kwargs, node_text_kwargs: dict
-        Keyword arguments parsed to create_edge(**), create_node(**), and create_node(plot_kwargs=**), respectively. Single entries of the dict may contain lists. Then the options of the list are parsed to the create_node/edge function in following order: start_left, end_left, start_right, end_right. List length should be either 2 for side = "left" or "right" or 4 for side = "both".
+        Keyword   arguments  parsed  to  create_edge(**),  create_node(**),  and
+        create_node(plot_kwargs=**),  respectively.  Single  entries of the dict
+        may  contain lists.  Then  the  options  of  the  list are parsed to the
+        create_node/edge  function  in  following  order:  start_left, end_left,
+        start_right, end_right. List length should be either 2 for side = "left"
+        or "right" or 4 for side = "both".
 
     Returns
     -------
@@ -127,8 +144,44 @@ def add_coreactants(edge,ax=None,side=None,arrow=None,text=None,width=None,heigh
 
     return nodes, edges
 
-def create_circular_network(center,radius,n_nodes,rotation=0,clockwise=True,text=None,ax=None,
+def create_circular_pathway(center,radius,n_nodes,rotation=0,clockwise=True,
+                            text=None,ax=None,
                             edge_kwargs={},node_kwargs={},node_text_kwargs={}):
+    """
+    Creates a circular pathway of nodes and edges.
+
+    Parameters
+    ----------
+    center : tuple
+        Coordinates (x, y) of the center of the circle.
+    radius : float
+        Radius of the circle.
+    n_nodes : int
+        Number of nodes to be placed on the circle.
+    rotation : float, optional
+        Location  where  the  first point should be placed. 0 - right, .5 - top,
+        1 - left, 1.5 - bottom.
+    clockwise : bool, optional
+        Whether the nodes are placed in a clockwise direction, by default True.
+    text : list of str of, optional
+        Text  labels  for  each  node,  by default None. If None, labels will be 
+        empty strings.
+    ax : matplotlib.axes.Axes, optional
+        matplotlib  axis  on  which  the  nodes  and edges are drawn. If None is
+        given, nothing is drawn.
+    edge_kwargs, node_kwargs, node_text_kwargs: dict
+        Keyword   arguments  parsed  to  create_edge(**),  create_node(**),  and
+        create_node(text_kwargs=**),  respectively.  Single  entries of the dict
+        may  contain lists.  Then  the  options  of  the  list are parsed to the
+        create_node/edge  function  sequentially.
+
+    Returns
+    -------
+    nodes : list
+        List of n_nodes nodes.
+    edges : list
+        List of n_nodes edges.
+    """
 
     #--- SEPARATE ALL THE DICTS OF LISTS INTO A LIST OF DICTS ---#
     edge_kwargs, node_kwargs = separate_dict_of_lists_into_list_of_dicts(n_nodes,edge_kwargs,node_kwargs,node_text_kwargs,)
@@ -138,7 +191,7 @@ def create_circular_network(center,radius,n_nodes,rotation=0,clockwise=True,text
     if len(text) < n_nodes:
         for i in range(n_nodes-len(text)):
             text.append("")
-    coordinates = get_circle_coordinates(center,radius,n_nodes,rotation,clockwise)
+    coordinates = calculate_circle_coordinates(center,radius,n_nodes,rotation,clockwise)
     circle_nodes = []
     for i, (coord,name) in enumerate(zip(coordinates,text)):
         n = create_node(coord,ax=ax,text=name,**node_kwargs[i])
