@@ -4,10 +4,11 @@ draw_network Package
 Core Module
 ----------------
 
-.. automodule:: draw_network.core
+.. automodule:: draw_network
    :members:
    :undoc-members:
    :show-inheritance:
+   :imported-members:
 
 Pathways Module
 --------------------

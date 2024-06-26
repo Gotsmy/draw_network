@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from .utils import *
+from . import utils
 import logging
 
 class draw_network_default_parameters:
@@ -180,15 +180,15 @@ def create_node(center,ax=None,radius=None,text=None,width=None,height=None,fill
         height = default.parameters["node_height"]
     if fill_color is None:
         fill_color = default.parameters["node_fill_color"]
-    plot_kwargs, = separate_list_kwarg_dicts(plot_kwargs,"nodeplot_",[],1)
-    text_kwargs, = separate_list_kwarg_dicts(text_kwargs,"nodetext_",[],1)
+    plot_kwargs, = utils.separate_list_kwarg_dicts(plot_kwargs,"nodeplot_",[],1)
+    text_kwargs, = utils.separate_list_kwarg_dicts(text_kwargs,"nodetext_",[],1)
     #-------------------------------#
 
 
     node_dict = {
         "center": np.array(center),
         "radius": radius,
-        "points": get_node_coordinates(center,radius,width,height),
+        "points": utils.get_node_coordinates(center,radius,width,height),
         "plot_kwargs": plot_kwargs,
         "text": text,
         "text_kwargs": text_kwargs,
@@ -224,7 +224,7 @@ def draw_node(node_dict,ax):
     else:
         inner_width = node_dict["width"]
         inner_height = node_dict["height"]
-    inner = get_node_coordinates(node_dict["center"],inner_radius,inner_width,inner_height)
+    inner = utils.get_node_coordinates(node_dict["center"],inner_radius,inner_width,inner_height)
     # TODO: there seems to be a bug, whenever there is a big linewidth set and the radius is very close to 0,
     #       the inner radius seems to be way bigger than the outer. Don't understand where this comes from.
 
@@ -273,13 +273,13 @@ def calculate_virtual_bezier_point(N1,N2,bezier_point,line):
         potential_points = [N1["center"]]
         is_inside = False
     else:
-        virtual_node_points = get_node_coordinates(N1["center"],N1["radius"]+line, N1["width"],N1["height"])
+        virtual_node_points = utils.get_node_coordinates(N1["center"],N1["radius"]+line, N1["width"],N1["height"])
         # check if current bezier point is inside the node
-        is_inside = is_point_inside_convex_polygon(virtual_node_points[0,:],virtual_node_points[1,:],bezier_point)
+        is_inside = utils.is_point_inside_convex_polygon(virtual_node_points[0,:],virtual_node_points[1,:],bezier_point)
         if is_inside:
-            potential_points = get_intersections(virtual_node_points,N2["center"], bezier_point)
+            potential_points = utils.get_intersections(virtual_node_points,N2["center"], bezier_point)
         else:
-            potential_points = get_intersections(virtual_node_points,N1["center"], bezier_point)
+            potential_points = utils.get_intersections(virtual_node_points,N1["center"], bezier_point)
 
     norms = np.linalg.norm(np.array(potential_points)-np.array(bezier_point),axis=1)
     point = potential_points[np.argmin(norms)]
@@ -287,12 +287,12 @@ def calculate_virtual_bezier_point(N1,N2,bezier_point,line):
 
 def calculate_single_symmetric_bezier_point(center_N1,center_N2,value,angle=None):
     if angle is not None:
-        center_N1 = rotate_point(center_N1,(0,0),-angle)
-        center_N2 = rotate_point(center_N2,(0,0),-angle)
-    rotated_N1, rotated_N2 = get_missing_rectangle_points(center_N1,center_N2)
+        center_N1 = utils.rotate_point(center_N1,(0,0),-angle)
+        center_N2 = utils.rotate_point(center_N2,(0,0),-angle)
+    rotated_N1, rotated_N2 = utils.get_missing_rectangle_points(center_N1,center_N2)
     if angle is not None:
-        rotated_N1 = rotate_point(rotated_N1,(0,0),+angle)
-        rotated_N2 = rotate_point(rotated_N2,(0,0),+angle)
+        rotated_N1 = utils.rotate_point(rotated_N1,(0,0),+angle)
+        rotated_N2 = utils.rotate_point(rotated_N2,(0,0),+angle)
     correct_value = (value/2+0.5)
     # single_symmetric_bezier_point
     ssbp = rotated_N1*(correct_value)+rotated_N2*(1-correct_value)
@@ -377,15 +377,15 @@ def calculate_coreactant_node_coordinates(edge,side="both",width=0,height=0):
 
     dx = P2[0]-P1[0]
     dy = P2[1]-P1[1]
-    angle = calculate_angle_from_slope(dx,dy)
+    angle = utils.calculate_angle_from_slope(dx,dy)
 
     # coreactants 1/4 of the way from the start point
-    CoR_S1 = rotate_point(center,start_rotation_center,angle=+90)
-    CoR_S2 = rotate_point(center,start_rotation_center,angle=-90)
+    CoR_S1 = utils.rotate_point(center,start_rotation_center,angle=+90)
+    CoR_S2 = utils.rotate_point(center,start_rotation_center,angle=-90)
 
     # coreactants 1/4 of the way from the end point
-    CoR_E1 = rotate_point(center,end_rotation_center,angle=-90)
-    CoR_E2 = rotate_point(center,end_rotation_center,angle=+90)
+    CoR_E1 = utils.rotate_point(center,end_rotation_center,angle=-90)
+    CoR_E2 = utils.rotate_point(center,end_rotation_center,angle=+90)
 
     # bezier point calculation
 
@@ -398,32 +398,32 @@ def calculate_coreactant_node_coordinates(edge,side="both",width=0,height=0):
     delta = np.array([width,height])
 
     if side == "left" or side == "both":
-        shifted_node_locations = [rotate_point(node,(0,0),-angle) for node in [CoR_S1, CoR_E1]]
+        shifted_node_locations = [utils.rotate_point(node,(0,0),-angle) for node in [CoR_S1, CoR_E1]]
         streched_backshifted_node_locations = []
         for node, factor in zip(shifted_node_locations,[-1,1]):
-            tmp = rotate_point(node+delta*np.array([factor,+1]),(0,0),angle)
+            tmp = utils.rotate_point(node+delta*np.array([factor,+1]),(0,0),angle)
             streched_backshifted_node_locations.append(tmp)
         node_locations += streched_backshifted_node_locations
 
-        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
-        bezier_locations.append(get_closer_point(bR1, bR2,start_rotation_center))
+        bR1, bR2 = utils.get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
+        bezier_locations.append(utils.get_closer_point(bR1, bR2,start_rotation_center))
 
-        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
-        bezier_locations.append(get_closer_point(bR1, bR2,end_rotation_center))
+        bR1, bR2 = utils.get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
+        bezier_locations.append(utils.get_closer_point(bR1, bR2,end_rotation_center))
 
     if side == "right" or side == "both":
-        shifted_node_locations = [rotate_point(node,(0,0),-angle) for node in [CoR_S2, CoR_E2]]
+        shifted_node_locations = [utils.rotate_point(node,(0,0),-angle) for node in [CoR_S2, CoR_E2]]
         streched_backshifted_node_locations = []
         for node, factor in zip(shifted_node_locations,[-1,1]):
-            tmp = rotate_point(node+delta*np.array([factor,-1]),(0,0),angle)
+            tmp = utils.rotate_point(node+delta*np.array([factor,-1]),(0,0),angle)
             streched_backshifted_node_locations.append(tmp)
         node_locations += streched_backshifted_node_locations
 
-        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
-        bezier_locations.append(get_closer_point(bR1, bR2,start_rotation_center))
+        bR1, bR2 = utils.get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[0],angle)
+        bezier_locations.append(utils.get_closer_point(bR1, bR2,start_rotation_center))
 
-        bR1, bR2 = get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
-        bezier_locations.append(get_closer_point(bR1, bR2,end_rotation_center))
+        bR1, bR2 = utils.get_missing_rotated_rectangle_points(center,streched_backshifted_node_locations[1],angle)
+        bezier_locations.append(utils.get_closer_point(bR1, bR2,end_rotation_center))
 
     return center, angle, node_locations, bezier_locations
 
@@ -505,8 +505,8 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
     rectangle_angle = rectangle_angle if rectangle_angle is not None else default.parameters["edge_rectangle_angle"]
     arrow_length = arrow_length if arrow_length is not None else default.parameters["edge_arrow_length"]
     text_offset = text_offset if text_offset is not None else default.parameters["edge_text_offset"]
-    plot_kwargs, = separate_list_kwarg_dicts(plot_kwargs,"edgeplot_",[],1)
-    text_kwargs, = separate_list_kwarg_dicts(text_kwargs,"edgetext_",[],1)
+    plot_kwargs, = utils.separate_list_kwarg_dicts(plot_kwargs,"edgeplot_",[],1)
+    text_kwargs, = utils.separate_list_kwarg_dicts(text_kwargs,"edgetext_",[],1)
 
     #--- CALCULATE POINTS OF THE EDGE ---#
     if type(curve)==list:
@@ -515,7 +515,7 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
         if B_calculation == "rectangle":
             B_pt = calculate_single_symmetric_bezier_point(N1["center"],N2["center"],curve,rectangle_angle)
         elif B_calculation == "rotation":
-            B_pt = calculate_single_rotated_bezier_point(N1["center"],N2["center"],curve)
+            B_pt = utils.calculate_single_rotated_bezier_point(N1["center"],N2["center"],curve)
         else:
             logging.warning(f"'{B_calculation}' is not implemented, defaults to 'rectangle'.")
             B_pt = calculate_single_symmetric_bezier_point(N1["center"],N2["center"],curve,rectangle_angle)
@@ -544,7 +544,7 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
         if is_inside_virtual_E:
             B_pts_mask[-1] = False
     all_B_pts = np.vstack([virtual_S_pt,*B_pts[B_pts_mask],virtual_E_pt])
-    pts = bezier_curve(all_B_pts)
+    pts = utils.bezier_curve(all_B_pts)
     pts = np.hstack([np.array([S_pt]).T,pts,np.array([E_pt]).T])
 
     # if debug mode is no, plot bezier points
@@ -570,7 +570,7 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
         else:
             tmp_arrow_angle = arrow_angle
 
-        R1 = rotate_point(B_pts[0],S_pt,tmp_arrow_angle*f)
+        R1 = utils.rotate_point(B_pts[0],S_pt,tmp_arrow_angle*f)
         vecR1 = R1-S_pt
         normR1 = np.linalg.norm(vecR1)
         corrR1 = S_pt+vecR1/normR1*arrow_length
@@ -582,7 +582,7 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
             tmp_arrow_angle = arrow_angle-180
         else:
             tmp_arrow_angle = arrow_angle
-        R1 = rotate_point(B_pts[-1],E_pt,tmp_arrow_angle*f)
+        R1 = utils.rotate_point(B_pts[-1],E_pt,tmp_arrow_angle*f)
         vecR1 = R1-E_pt
         normR1 = np.linalg.norm(vecR1)
         corrR1 = E_pt+vecR1/normR1*arrow_length

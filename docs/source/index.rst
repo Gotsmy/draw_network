@@ -17,7 +17,6 @@ Welcome to draw_network's Documentation!
 
    readme
    draw_network
-#   data/demo
    
 
 Indices and Tables
