@@ -18,9 +18,3 @@ Pathways Module
    :undoc-members:
    :show-inheritance:
 
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents
-
-   draw_network
