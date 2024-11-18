@@ -15,8 +15,8 @@ Welcome to DrawNet's Documentation!
    :maxdepth: 2
    :caption: Contents
 
-   readme
-   draw_network
+   source/readme
+   source/draw_network
 
 
 Indices and Tables
