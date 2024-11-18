@@ -3,12 +3,12 @@
 Welcome to DrawNet's Documentation!
 ===================================
 
-.. image:: data/logo.png
+.. image:: source/data/logo.png
   :target: index.html
   :width: 400
   :alt: Icon
 
-.. include:: data/welcome.md
+.. include:: source/data/welcome.md
    :parser: myst_parser.sphinx_
 
 .. toctree::
