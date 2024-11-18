@@ -8,3 +8,4 @@ sphinxcontrib-jsmath
 sphinxcontrib-qthelp==1.0.7
 sphinxcontrib-serializinghtml==1.1.10
 myst-parser==0.18.1
+-e ../.
