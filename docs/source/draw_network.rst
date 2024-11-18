@@ -23,5 +23,4 @@ Pathways Module
    :maxdepth: 2
    :caption: Contents
 
-   readme
    draw_network
