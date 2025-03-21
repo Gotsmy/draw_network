@@ -465,3 +465,33 @@ def create_edge(N1,N2,ax=None,text=None,curve=None,bezier_calculation=None,
     if ax is not None:
         draw_edge(edge_dict,ax)
     return edge_dict
+
+def plot_system_bounds(xlim,ylim,r,ax=None,plot_kwargs={}):
+    """
+    Plot a systemboundary between xlim and ylim.
+
+    Parameters
+    ----------
+    xlim : tuple or list
+        Min and max value of system bounds along X-axis.
+    ylim : tuple or list
+        Min and max value of system bounds along y-axis.
+    r : float
+        Radius of the corner of the bounds.
+    ax : matplotlib.axes.Axes
+        The matplotlib Axes object to plot the points on. Defaults to None.
+    plot_kwargs : dict, optional
+        A dictionary of keyword arguments for customizing the system boundary's plot style.
+        Defaults to an empty dictionary.
+
+    Returns
+    -------
+    a : Numpy.NDarray
+        Array of shape (2, :) with X and Y coordinates of points of the system boundary.
+    """
+
+    a = utils.get_system_bounds(xlim,ylim,r)
+
+    if ax is not None:
+        ax.plot(a[0,:],a[1,:],**plot_kwargs)
+    return a

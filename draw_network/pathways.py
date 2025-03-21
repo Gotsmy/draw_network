@@ -204,3 +204,33 @@ def create_circular_pathway(center,radius,n_nodes,rotation=0,clockwise=True,
     circle_edges.append(e)
 
     return circle_nodes, circle_edges
+
+def pathway_through_nodes(nodes,ax=None,edge_kwargs={}):
+    """
+    Creates edges through list of nodes.
+
+    Parameters
+    ----------
+    nodes : list
+        List of nodes.
+    ax : matplotlib.axes.Axes, optional
+        matplotlib  axis  on  which  the  nodes  and edges are drawn. If None is
+        given, nothing is drawn. Default: None
+    edge_kwargs: dict, optional
+        Keyword   arguments  parsed  to  create_edge(**).  Single  entries of the 
+        dict may  contain lists.  Then  the  options  of  the  list are parsed to the
+        create_edge  function  sequentially. Default: {}
+
+    Returns
+    -------
+    edges : list
+        List of n_nodes-1 edges.
+    """
+    
+    n_nodes = len(nodes)
+    edge_kwargs = utils.separate_list_kwarg_dicts(edge_kwargs,"edge_",["debug"],n_nodes-1)
+    edges = []
+    for i in range(n_nodes-1):
+        e = create_edge(node_list[i],node_list[i+1],ax=ax,**edge_kwargs[i])
+        edges.append(e)
+    return edges

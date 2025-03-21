@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import logging
+from scipy.special import factorial
 
 
 def calculate_angle_from_slope(dx, dy):
@@ -174,7 +175,7 @@ def bezier_curve(bez_points):
         n = len(bez_points) - 1
 
         def bernstein_basis(i, n, t):
-            return np.math.factorial(n) / (np.math.factorial(i) * np.math.factorial(n - i)) * t**i * (1 - t)**(n - i)
+            return factorial(n) / (factorial(i) * factorial(n - i)) * t**i * (1 - t)**(n - i)
 
         def calculate_bezier_curve_point(bez_points,t):
             P = np.zeros_like(bez_points[0])
@@ -626,3 +627,40 @@ def calculate_circle_coordinates(center, radius, n, rotation = 0, clockwise=True
         coordinates = [coordinates[0]]+coordinates[1:][::-1]
 
     return coordinates
+
+def get_system_bounds(xlim,ylim,r):
+    """
+    Get points for the system bounds.
+
+    Parameters
+    ----------
+    xlim : tuple or list
+        Min and max value of system bounds along X-axis.
+    ylim : tuple or list
+        Min and max value of system bounds along y-axis.
+    r : float
+        Radius of the corner of the bounds.
+    """
+    
+    p1 = np.array([xlim[0],ylim[1]]).astype(float)
+    p2 = np.array([xlim[1],ylim[1]]).astype(float)
+    p3 = np.array([xlim[1],ylim[0]]).astype(float)
+    p4 = np.array([xlim[0],ylim[0]]).astype(float)
+    
+    p1X = p1+[ r, 0]
+    p1Y = p1+[ 0,-r]
+    b1  = bezier_curve(np.array([p1Y,p1,p1X]))
+    
+    p2X = p2+[-r, 0]
+    p2Y = p2+[ 0,-r]
+    b2  = bezier_curve(np.array([p2X,p2,p2Y]))
+    
+    p3X = p3+[-r, 0]
+    p3Y = p3+[ 0,+r]
+    b3  = bezier_curve(np.array([p3Y,p3,p3X]))
+    
+    p4X = p4+[ r, 0]
+    p4Y = p4+[ 0,+r]
+    b4  = bezier_curve(np.array([p4X,p4,p4Y]))
+    
+    return np.hstack([b1,b2,b3,b4,np.array([p1Y]).T])    
