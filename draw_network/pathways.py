@@ -231,6 +231,6 @@ def pathway_through_nodes(nodes,ax=None,edge_kwargs={}):
     edge_kwargs = utils.separate_list_kwarg_dicts(edge_kwargs,"edge_",["debug"],n_nodes-1)
     edges = []
     for i in range(n_nodes-1):
-        e = create_edge(node_list[i],node_list[i+1],ax=ax,**edge_kwargs[i])
+        e = create_edge(nodes[i],nodes[i+1],ax=ax,**edge_kwargs[i])
         edges.append(e)
     return edges
